@@ -18,7 +18,7 @@ func GetWalletByUser(username string, client *resty.Client) (*common.Wallet, *er
 	request := client.R()
 	request.Header.Set(constants.X_IS_INTERNAL_SERVICE, "true")
 
-	response, err := request.Get(WALLET_SERVICE_URL + "/common/" + username)
+	response, err := request.Get(WALLET_SERVICE_URL + "/wallets/" + username)
 	if err != nil {
 		return nil, errors.NewInternal("Внутренняя ошибка: Возможно сервис кошельков не доступен.")
 	}
