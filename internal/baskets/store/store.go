@@ -26,11 +26,11 @@ func New() *BasketStore {
 
 func (s *BasketStore) Save(input models.BasketSave) *errors.CustomError {
 	return db.StartTransaction(func(tx *sqlx.Tx) *errors.CustomError {
-		var basket *models.Basket
+		var basket models.Basket
 		var itemCount int
-		err := tx.Get(&basket, "select * from t_basket where username = $1 and item_code = $2", input.Username, input.ItemCode)
+		err := tx.Get(&basket, "select * from t_basket where lower(username) = lower($1) and upper(item_code) = upper($2)", input.Username, input.ItemCode)
 		if err != nil {
-			basket = nil
+			panic(err)
 		}
 
 		err = tx.Get(&itemCount, "select count from t_items where code = $1", input.ItemCode)
@@ -39,7 +39,7 @@ func (s *BasketStore) Save(input models.BasketSave) *errors.CustomError {
 		}
 
 		if input.Action == "ADD" {
-			if basket == nil {
+			if len(basket.Username) == 0 {
 				_, err = tx.NamedExec("insert into t_basket (username, item_code) values (:username, :item_code)", input)
 				if err != nil {
 					panic(err)
@@ -55,7 +55,7 @@ func (s *BasketStore) Save(input models.BasketSave) *errors.CustomError {
 				}
 			}
 		} else {
-			if basket == nil {
+			if len(basket.Username) == 0 {
 				return errors.NewBadRequest("Данного товара нет в корзине пользователя.")
 			} else {
 				if itemCount-1 == 0 {
@@ -154,15 +154,7 @@ func (s *BasketStore) Pay(username string) *errors.CustomError {
 			return errors.NewBadRequest("Недостаточно средств для оплаты.")
 		}
 
-		query = `
-			do $$
-			begin
-			    insert into t_basket_history
-				select username, item_code, count, now() from t_basket where username = $1;
-			end;
-			$$ language plpgsql
-		`
-		_, err = tx.Exec(query, username)
+		_, err = tx.Exec("select insert_to_basket_history($1)", username)
 		if err != nil {
 			panic(err)
 		}
@@ -170,6 +162,13 @@ func (s *BasketStore) Pay(username string) *errors.CustomError {
 		_, err = tx.Exec("delete from t_basket where username = $1", username)
 		if err != nil {
 			panic(err)
+		}
+
+		for _, i := range items {
+			_, err = tx.Exec("update t_items set count = count-$2 where code = $1", i.Code, i.Count)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		msg := common.WalletUpdate{
