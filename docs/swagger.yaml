@@ -1,0 +1,492 @@
+definitions:
+  models.Page:
+    properties:
+      page:
+        type: integer
+      result: {}
+      size:
+        type: integer
+      total_elements:
+        type: integer
+    type: object
+  shop-service_internal_baskets_models.BasketHistoryView:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shop-service_internal_items_models.ItemBasketHistoryView'
+        type: array
+      payed_at:
+        type: string
+      total:
+        type: integer
+    type: object
+  shop-service_internal_baskets_models.BasketSave:
+    properties:
+      action:
+        type: string
+      item_code:
+        type: string
+      username:
+        type: string
+    type: object
+  shop-service_internal_baskets_models.BasketView:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shop-service_internal_items_models.ItemBasketView'
+        type: array
+      total:
+        type: integer
+    type: object
+  shop-service_internal_categories_models.Category:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    type: object
+  shop-service_internal_items_models.Item:
+    properties:
+      category:
+        $ref: '#/definitions/shop-service_internal_categories_models.Category'
+      code:
+        type: string
+      count:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  shop-service_internal_items_models.ItemBasketHistoryView:
+    properties:
+      category:
+        $ref: '#/definitions/shop-service_internal_categories_models.Category'
+      code:
+        type: string
+      count:
+        type: integer
+      name:
+        type: string
+      payed_at:
+        type: string
+      price:
+        type: integer
+      total:
+        type: integer
+    type: object
+  shop-service_internal_items_models.ItemBasketView:
+    properties:
+      category:
+        $ref: '#/definitions/shop-service_internal_categories_models.Category'
+      code:
+        type: string
+      count:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+      total:
+        type: integer
+    type: object
+  shop-service_internal_items_models.ItemDto:
+    properties:
+      category:
+        type: string
+      code:
+        type: string
+      count:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /basket:
+    post:
+      consumes:
+      - application/json
+      operationId: save-to-basket
+      parameters:
+      - description: Сохранить или удалить товар из корзины
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/shop-service_internal_baskets_models.BasketSave'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Добавить/Удалить один товар из корзины
+  /basket/{username}:
+    delete:
+      consumes:
+      - application/json
+      operationId: remove-full-item-from-basket
+      parameters:
+      - description: Логин пользователя
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Код товара
+        in: query
+        name: itemCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Полностью удалить товар из корзины
+    get:
+      consumes:
+      - application/json
+      operationId: find-basket-by-user
+      parameters:
+      - description: Логин пользователя
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shop-service_internal_baskets_models.BasketView'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Добавить/Удалить один товар из корзины
+    post:
+      consumes:
+      - application/json
+      operationId: pay-basket
+      parameters:
+      - description: Логин пользователя
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Оплатить корзину товаров
+  /basket/{username}/history:
+    get:
+      consumes:
+      - application/json
+      operationId: get-history-by-user
+      parameters:
+      - description: Логин пользователя
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shop-service_internal_baskets_models.BasketHistoryView'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Получить историю оплаты товаров корзин
+  /categories:
+    get:
+      consumes:
+      - application/json
+      operationId: find-all-categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shop-service_internal_categories_models.Category'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Получить список категорий товаров
+    post:
+      consumes:
+      - application/json
+      operationId: save-category
+      parameters:
+      - description: Информация о категории
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/shop-service_internal_categories_models.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Создать/Обновить категорию товаров
+  /categories/{code}:
+    delete:
+      consumes:
+      - application/json
+      operationId: delete-category
+      parameters:
+      - description: Информация о создаваемой категории
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить категорию товаров
+  /items:
+    get:
+      consumes:
+      - application/json
+      operationId: find-all-items
+      parameters:
+      - description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - description: Количество элементов за раз
+        in: query
+        name: size
+        type: integer
+      - description: Сортировка по полям
+        in: query
+        name: sortFields
+        type: string
+      - description: Название товара
+        in: query
+        name: name
+        type: string
+      - description: Код товара
+        in: query
+        name: code
+        type: string
+      - description: Код категории товара
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Page'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Получить список товаров
+    post:
+      consumes:
+      - application/json
+      operationId: create-item
+      parameters:
+      - description: Информация о создаваемом товаре
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/shop-service_internal_items_models.ItemDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Создать товар
+    put:
+      consumes:
+      - application/json
+      operationId: update-item
+      parameters:
+      - description: Информация об изменяемом товаре
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/shop-service_internal_items_models.ItemDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить товар
+  /items/{code}:
+    delete:
+      consumes:
+      - application/json
+      operationId: delete-item
+      parameters:
+      - description: Код товара
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить товар
+    get:
+      consumes:
+      - application/json
+      operationId: find-item-by-code
+      parameters:
+      - description: Код товара
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shop-service_internal_items_models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Получить товар по коду
+swagger: "2.0"
